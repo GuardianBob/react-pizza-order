@@ -1,29 +1,25 @@
 import React, {Component} from 'react';
-import Checkbox from './src/Checkbox';
-import Button from './src/Button';
-import TextInput from './src/TextInput';
-import DropDown from './src/DropDown';
-import TextArea from './src/TextArea';
-import TimeInput from './src/TimeInput';
-import firebase from '../Firebase';
+import Checkbox from './components/Checkbox';
+import Button from './components/Button';
+import TextInput from './components/TextInput';
+import DropDown from './components/DropDown';
+import TextArea from './components/TextArea';
+import TimeInput from './components/TimeInput';
+import firebase from './Firebase';
 import { getDatabase, ref, set } from 'firebase/database';
 
-class FormContainer extends Component {
+class Settings extends Component {
     constructor(props){
         super(props);
 
         this.state = {
-            newOrder: {
-                toppings: [],
-                pickUp: '',
-                oName: '',
-                email: '',
-                phone: '',
-                complete: false,
-                ready: false,
+            settings: {
+                daysAvailable: [],
+                timeAvailable: '',
+                toppingsAvailable: [],
+                cookTime: '',
+                orderCount: ''
             },
-
-            toppingsOptions: ["Pepperoni", "Italian Sausage", "Roasted Red Peppers", "Onion", "Green Bell Pepper", "Bacon", "Garlic", "Spinach", "Black Olives"]
             
         }
         this.handleInput = this.handleInput.bind(this);
@@ -37,8 +33,8 @@ class FormContainer extends Component {
         let name = e.target.name;
         this.setState( prevState => {
             return {
-                newOrder : {
-                    ...prevState.newOrder, [name]: value
+                update : {
+                    ...prevState.update, [name]: value
                 }
             }
         });
@@ -49,30 +45,30 @@ class FormContainer extends Component {
         let newSelectionArray;
 
         // Change "toppings" to whatever checkbox area is called.
-        if(this.state.newOrder.toppings.indexOf(newSelection) > -1) {
-            newSelectionArray = this.state.newOrder.toppings.filter(s => s !== newSelection)
+        if(this.state.update.toppings.indexOf(newSelection) > -1) {
+            newSelectionArray = this.state.update.toppings.filter(s => s !== newSelection)
         } else {
-            newSelectionArray = [...this.state.newOrder.toppings, newSelection];
+            newSelectionArray = [...this.state.update.toppings, newSelection];
         }
 
-        this.setState( prevState => ({ newOrder:
-            {...prevState.newOrder, toppings: newSelectionArray }
+        this.setState( prevState => ({ update:
+            {...prevState.update, toppings: newSelectionArray }
         })
         );
     }
 
-    addOrder = newOrder => {
+    addOrder = update => {
         var timestamp = new Date().getTime();
-        let orderID = `${this.state.newOrder.phone}-${timestamp}`;
+        let orderID = `${this.state.update.phone}-${timestamp}`;
         var today = new Date().toLocaleDateString().replace(/\//g, '-');
         // console.log(today.toLocaleDateString("en-US"));
         // console.log(orderID);
         const db = getDatabase();
-        set(ref(db, 'orders/' + today + '/' + orderID), newOrder);
+        set(ref(db, 'orders/' + today + '/' + orderID), update);
     };
 
     validateForm(e) {
-        let pTime = this.state.newOrder.pickUp;
+        let pTime = this.state.update.pickUp;
         var hh = parseInt(pTime.slice(0, 2));
         var mm = parseInt(pTime.slice(3, 5));
         var timeNow = new Date();
@@ -91,7 +87,7 @@ class FormContainer extends Component {
         }else {
             // console.log("Looks good!")
             document.getElementById("timeError").innerHTML = ""
-            this.addOrder(this.state.newOrder);
+            this.addOrder(this.state.update);
             this.handleClearForm(e);
         }
     }
@@ -106,12 +102,12 @@ class FormContainer extends Component {
     handleClearForm(e) {
         e.preventDefault();
         this.setState({
-            newOrder: {
-                toppings: [],
-                pickUp: '',
-                oName: '',
-                email: '',
-                phone: '',
+            update: {
+                daysAvailable: [],
+                timeAvailable: '',
+                toppingsAvailable: [],
+                cookTime: '',
+                orderCount: ''
             }
         });
     }
@@ -127,9 +123,9 @@ class FormContainer extends Component {
                         </div>
                         <div className="form-control">
                             <Checkbox title={'Toppings: '}
-                                name={'toppings'}
+                                name={'toppingsAvailable'}
                                 options={this.state.toppingsOptions}
-                                selectedOptions = {this.state.newOrder.toppings}
+                                selectedOptions = {this.state.update.toppingsAvailable}
                                 handleChange={this.handleToppings}
                             />
                         </div>
@@ -199,4 +195,4 @@ class FormContainer extends Component {
 
 }
 
-export default FormContainer;
+export default Settings;
