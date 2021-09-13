@@ -50,7 +50,7 @@ class Orders extends Component {
                             }); 
                         }
                     }
-                    console.log(ordersList);
+                    // console.log(ordersList);
                     this.setState({
                         todaysOrders: ordersList
                     })

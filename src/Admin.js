@@ -1,6 +1,6 @@
 import React, {Component, useState} from 'react';
 import firebase from './Firebase';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { getDatabase, ref, onValue, set } from "firebase/database";
 import { Redirect, Route } from 'react-router-dom';
 import 'firebase/database';
@@ -10,6 +10,7 @@ import { GiBigGear } from "react-icons/gi";
 import { GoCheck } from "react-icons/go";
 import Orders from './Orders';
 import OrdersToday from './OrdersToday';
+import Settings from './Settings'
 
 class Admin extends Component {
     constructor() {
@@ -38,6 +39,19 @@ class Admin extends Component {
         })
     }
 
+    logOutUser = e => {
+        e.preventDefault();
+        const auth = getAuth();
+        signOut(auth).then(() => {
+            this.setState({
+                user: null
+            });
+            navigate('/')
+        }).catch((error) => {
+
+        })
+    };
+
     toggleActive (e, tabID) {
         // this.setState({
         //     isHidden: !this.state.isHidden
@@ -52,6 +66,7 @@ class Admin extends Component {
     
     
     render() {
+        const { user, logOutUser } = this.props;
         
         const gStyle = { marginRight: "2px"}
         return(
@@ -105,7 +120,8 @@ class Admin extends Component {
                                 type="button" 
                                 role="link" 
                                 aria-controls="logout" 
-                                aria-selected="false">
+                                aria-selected="false"
+                                onClick={e => this.logOutUser(e)}>
                                     Log Out
                             </button>
                         </li>
@@ -114,7 +130,7 @@ class Admin extends Component {
                     <div className="tab-content" id="myTabContent">
                         <div className="tab-pane fade show active" id="orders-today" role="tabpanel" aria-labelledby="orders-today-tab"><OrdersToday /></div>
                         <div className="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab"><Orders /></div>                        
-                        <div className="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">Settings</div>
+                        <div className="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab"><Settings /></div>
                     </div>                    
                 </div>
                 
