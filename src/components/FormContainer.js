@@ -104,14 +104,18 @@ class FormContainer extends Component {
 
     validateForm(e) {
         let pTime = this.state.newOrder.pickUp;
-        let top = this.state.newOrder.toppings;
 
-        if(top.length < 1) {
-            this.setState( prevState => ({ newOrder:
-                {...prevState.newOrder, toppings: ['Cheese Only'] }
-            })
-            );
+        // console.log(this.state.newOrder.toppings.length);
+        if (!this.state.newOrder.toppings.length > 0) {
+            this.state.newOrder.toppings.push("Cheese Only");
         }
+
+        // console.log(this.state.newOrder['toppings'])
+
+        let prepTime;
+        // console.log(this.state.settings['cookTime']);
+        !this.state.settings['cookTime'] > 0 ? prepTime=.5: prepTime = parseFloat(this.state.settings['cookTime']);
+        // console.log(prepTime);
 
         var hh = parseInt(pTime.slice(0, 2));
         var mm = parseInt(pTime.slice(3, 5));
@@ -120,15 +124,15 @@ class FormContainer extends Component {
         var endHH = parseInt(this.state.settings['endTime'].slice(0,2));
         var endMM = parseInt(this.state.settings['endTime'].slice(3,5));
         var timeNow = new Date();
-        var prepTime = parseFloat(this.state.settings['cookTime']);
-        console.log(prepTime);
+        
         
         var oTime = new Date(timeNow.getTime() + ((60 * prepTime)*60000)).toLocaleTimeString('en-GB');
-        console.log(oTime)
+        // console.log(oTime)
+        
         var hhNow = parseInt(oTime.slice(0, 2));
         var mmNow = parseInt(oTime.slice(3, 5));
         // console.log(oTime);
-        if (hh < startHH || (hh === startHH && mm < endMM)) {
+        if (hh < startHH || (hh === startHH && mm < startMM)) {
             // console.log("Time is too soon!");
             document.getElementById("timeError").innerHTML = "Too Early!"
         } else if (hh > endHH || (hh === endHH && mm > endMM)) {

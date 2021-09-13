@@ -73,6 +73,10 @@ class Settings extends Component {
             
             // console.log(addDays);
             this.state.selectedDays = addDays;
+
+            if (!this.state.settings.cookTime > 0) {
+                this.state.settings['cookTime'] = 0.5;
+            }
             
             this.forceUpdate()
             // console.log(this.state.settings);
@@ -261,13 +265,6 @@ class Settings extends Component {
         var startTime = this.handleCheckTime(isStartTime);
         var endTime = this.handleCheckTime(isEndTime);
         // console.log(this.state.settings);
-        var prepTime = 0;
-
-        if (isCookTime) {
-            prepTime = isCookTime;
-        } else {
-            prepTime = .5;
-        }
         
         return (
             <div className="container">
@@ -299,8 +296,8 @@ class Settings extends Component {
                                             <TextInput inputType={'number'}
                                                 name={'cookTime'}
                                                 title={'Select estimated time to prepare pizzas:  '}
-                                                value={prepTime}
-                                                placeHolder={prepTime}
+                                                value={this.state.settings.cookTime}
+                                                placeHolder={this.state.settings.cookTime}
                                                 handleChange={this.handleInput}
                                                 step={'.5'}                             
                                             />
