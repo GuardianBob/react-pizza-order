@@ -3,7 +3,7 @@ import React from 'react';
 const TextInput = (props) => {
     return (
         <div className="form-group">
-            <label htmlFor={props.name} className="form-label me-2">{props.title}</label>
+            {/* <label htmlFor={props.name} className="form-label me-2">{props.title}</label> */}
             <input
                 className="form-control"
                 id={props.name}
@@ -11,10 +11,10 @@ const TextInput = (props) => {
                 type={props.inputType}
                 value={props.value}
                 onChange={props.handleChange}
-                placeHolder={props.placeHolder}
+                placeholder={props.placeHolder}
                 min={props.min}
                 max={props.max}
-                required={props.required}
+                required={props.required}                
             />
         </div>
     );

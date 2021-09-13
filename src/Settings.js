@@ -6,7 +6,8 @@ import DropDown from './components/DropDown';
 import TextArea from './components/TextArea';
 import TimeInput from './components/TimeInput';
 import firebase from './Firebase';
-import { getDatabase, ref, set } from 'firebase/database';
+import { getDatabase, ref, set, onValue } from 'firebase/database';
+import {FiSave, FiPlusSquare} from 'react-icons/fi';
 
 class Settings extends Component {
     constructor(props){
@@ -15,60 +16,190 @@ class Settings extends Component {
         this.state = {
             settings: {
                 daysAvailable: [],
-                timeAvailable: '',
+                startTime: '',
+                endTime: '',
+                toppings: [],
                 toppingsAvailable: [],
+                newTopping: '',
                 cookTime: '',
                 orderCount: ''
-            },
+            },   
+            selected: [],
+            selectedDays: [], 
+            daysOfWeek: ['Sunday', 'Monday','Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+            // { 0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday' }
             
-        }
+        }      
+
         this.handleInput = this.handleInput.bind(this);
         this.handleToppings = this.handleToppings.bind(this);
+        this.handleDays = this.handleDays.bind(this);
         this.handleClearForm = this.handleClearForm.bind(this);
         this.handleFormSubmit = this.handleFormSubmit.bind(this);
+        this.handleSave = this.handleSave.bind(this);
+        this.handleNewTopping = this.handleNewTopping.bind(this);
+        this.handleToppings = this.handleToppings.bind(this);
+        this.updateSettings = this.updateSettings.bind(this);
+        this.handleAvailableToppings = this.handleAvailableToppings.bind(this);
+        
+        
+    }
+    // !!!!! IMPORTANT !!!! For the values from settings to display on initial load,
+    // the "for" loop must be run inside the "onValue" functions and then 
+    // a forceUpdate must be run right after the for loop also inside the onValue function!!!
+    componentDidMount() {
+        // you can also check props with current version
+        // and set conditions to update state or not
+        let settings = {};
+        const db = getDatabase();
+        const settingsRef = ref(db, 'settings/');
+        onValue(settingsRef, (snapshot) => {
+            settings = snapshot.val();
+            // console.log(settings);
+        
+
+            for (const [key, value] of Object.entries(settings)) {
+                // console.log(key);
+                this.state.settings[key] = value; 
+                // console.log(this.state.settings[key])
+            }
+
+            this.state.selected = this.state.settings.toppingsAvailable;
+            
+            let addDays = [];
+            for (let day of this.state.settings.daysAvailable) {
+                addDays.push(this.state.daysOfWeek[day]);
+            }
+            
+            // console.log(addDays);
+            this.state.selectedDays = addDays;
+            
+            this.forceUpdate()
+            // console.log(this.state.settings);
+        })
     }
 
+    updateSettings(key, value, settings) {
+        var schema = settings;
+        var kList = key.split('.');
+        var len = kList.length;
+        for (var i = 0; i < len-1; i++) {
+            var elem = kList[i];
+            if ( !schema[elem] ) schema[elem] = {}
+            schema = schema[elem];
+        }
+        schema[kList[len-1]] = value;
+    }
+    
     handleInput(e) {
         let value = e.target.value;
+        // console.log(value);
         let name = e.target.name;
+        // console.log(name);
         this.setState( prevState => {
             return {
-                update : {
-                    ...prevState.update, [name]: value
+                settings : {
+                    ...prevState.settings, [name]: value
                 }
             }
         });
+        
     }
+
+    handleSave(e, value, name) {
+        e.preventDefault();
+        // console.log(this.state.settings);
+        // let value = this.state.settings.startTime;
+        // console.log(value);        
+        // let name = this.state.settings;
+        // console.log(name);
+        const db = getDatabase();
+        set(ref(db, `settings/${name}`), value);
+        // this.updateSettings(this.state.settings);
+    }
+
+    handleTimeStop(e) {}
+    
+    handleTimeSave(e) {}
 
     handleToppings(e) {
         const newSelection = e.target.value;
         let newSelectionArray;
 
         // Change "toppings" to whatever checkbox area is called.
-        if(this.state.update.toppings.indexOf(newSelection) > -1) {
-            newSelectionArray = this.state.update.toppings.filter(s => s !== newSelection)
+        if(this.state.selected.indexOf(newSelection) > -1) {
+            newSelectionArray = this.state.selected.filter(s => s !== newSelection)
         } else {
-            newSelectionArray = [...this.state.update.toppings, newSelection];
+            newSelectionArray = [...this.state.selected, newSelection];
         }
 
-        this.setState( prevState => ({ update:
-            {...prevState.update, toppings: newSelectionArray }
-        })
+        this.setState( { selected: newSelectionArray }
         );
+        
     }
 
-    addOrder = update => {
-        var timestamp = new Date().getTime();
-        let orderID = `${this.state.update.phone}-${timestamp}`;
-        var today = new Date().toLocaleDateString().replace(/\//g, '-');
-        // console.log(today.toLocaleDateString("en-US"));
-        // console.log(orderID);
+    handleAvailableToppings(e) {
+        e.preventDefault();
         const db = getDatabase();
-        set(ref(db, 'orders/' + today + '/' + orderID), update);
-    };
+        set(ref(db, `settings/toppingsAvailable/`), this.state.selected);       
+        
+    }
+
+    handleDays(e) {
+        const newSelection = e.target.value;
+        let newSelectionArray;
+
+        // console.log(newSelection + ": " + this.state.daysOfWeek.indexOf(newSelection));
+
+        // Change "toppings" to whatever checkbox area is called.
+        if(this.state.selectedDays.indexOf(newSelection) > -1) {
+            newSelectionArray = this.state.selectedDays.filter(s => s !== newSelection)
+        } else {
+            newSelectionArray = [...this.state.selectedDays, newSelection];
+        }
+
+        this.setState( { selectedDays: newSelectionArray }
+        );
+        
+    }
+
+    handleDaysAvailable(e) {
+        e.preventDefault();
+        let dayNumbers = [];
+        // console.log(this.state.selectedDays)
+
+        for (let day of this.state.selectedDays) {
+            // console.log(day);
+            dayNumbers.push(this.state.daysOfWeek.indexOf(day))
+        }
+
+        // console.log(dayNumbers);
+
+        const db = getDatabase();
+        set(ref(db, `settings/daysAvailable/`), dayNumbers);      
+    }
+
+    handleNewTopping(e, value) {
+        e.preventDefault();
+        // console.log(value);
+        let uToppings = this.state.settings.toppings;
+        uToppings.push(value)
+        this.setState( prevState => {
+            return {
+                settings : {
+                    ...prevState.settings, ["toppings"]: uToppings                    
+                }
+            }
+        });
+        this.state.settings.newTopping = ''
+        const db = getDatabase();
+        set(ref(db, `settings/toppings`), this.state.settings.toppings);
+        document.getElementById('newTopping').value = ''
+        return
+    }
 
     validateForm(e) {
-        let pTime = this.state.update.pickUp;
+        let pTime = this.state.selected.pickUp;
         var hh = parseInt(pTime.slice(0, 2));
         var mm = parseInt(pTime.slice(3, 5));
         var timeNow = new Date();
@@ -87,7 +218,7 @@ class Settings extends Component {
         }else {
             // console.log("Looks good!")
             document.getElementById("timeError").innerHTML = ""
-            this.addOrder(this.state.update);
+            this.addOrder(this.state.selected);
             this.handleClearForm(e);
         }
     }
@@ -102,7 +233,7 @@ class Settings extends Component {
     handleClearForm(e) {
         e.preventDefault();
         this.setState({
-            update: {
+            selected: {
                 daysAvailable: [],
                 timeAvailable: '',
                 toppingsAvailable: [],
@@ -112,84 +243,163 @@ class Settings extends Component {
         });
     }
 
+    handleCheckTime(e, timeInput) {
+        if (timeInput) {
+            return timeInput;
+        } else {
+            return '12:00';
+        }
+    }
+
     render() {
+        const isToppings = this.state.settings.toppings;
+        const isDays = this.state.daysOfWeek;
+        // console.log(isToppings);
+        const isStartTime = this.state.settings.startTime;
+        const isEndTime = this.state.settings.endTime;
+        const isCookTime = this.state.settings.cookTime;
+        var startTime = this.handleCheckTime(isStartTime);
+        var endTime = this.handleCheckTime(isEndTime);
+        // console.log(this.state.settings);
+        var prepTime = 0;
+
+        if (isCookTime) {
+            prepTime = isCookTime;
+        } else {
+            prepTime = .5;
+        }
+        
         return (
-            <form className="container" onSubmit={this.handleFormSubmit}>
+            <div className="container">
                 <div className="row justify-content-center">
-                    <div className="col-md-8 justify-content-center">
-                        <div className="form-control form-label fs-4 text-center">
-                            <div>12" deep dish pizza serves 4 - 6 people.</div>
-                            <div>$25 per pizza with unlimited toppings.</div>
+                    <div className="col-md-10 justify-content-center">
+                        <div className="form-control mt-4">
+                            {isToppings.length > 0 ? (
+                                <Checkbox title={'Toppings: '}
+                                    name={'toppings'}
+                                    options={this.state.settings.toppings}
+                                    selectedOptions = {this.state.selected}
+                                    handleChange={this.handleToppings}
+                                />) : "No toppings yet"
+                            }    
+                            <button className={"btn btn-sm btn-outline-primary"} 
+                                title="Save Updates" 
+                                onClick={e => this.handleAvailableToppings(e)}>
+                                    <FiSave />  Save
+                            </button>                         
                         </div>
-                        <div className="form-control">
-                            <Checkbox title={'Toppings: '}
-                                name={'toppingsAvailable'}
-                                options={this.state.toppingsOptions}
-                                selectedOptions = {this.state.update.toppingsAvailable}
-                                handleChange={this.handleToppings}
-                            />
+                        <div className='py-1 d-flex align-items-center justify-content-center'>
+                            <form className="form-group col-12">
+                                <div className="row justify-content-between">
+                                    <div className="col-lg-6 py-1">
+                                        <label htmlFor="prepTime" className="form-label ">Select estimated time to prepare pizzas (in hours):  </label> 
+                                        <div className="input-group">
+                                            <span className="text-danger" id="timeError"></span>                
+                                            
+                                            <TextInput inputType={'number'}
+                                                name={'cookTime'}
+                                                title={'Select estimated time to prepare pizzas:  '}
+                                                value={prepTime}
+                                                placeHolder={prepTime}
+                                                handleChange={this.handleInput}
+                                                step={'.5'}                             
+                                            />
+                                            <button className={"form-control btn btn-sm btn-outline-primary"} 
+                                                title="Save Updates" 
+                                                onClick={e => this.handleSave(e, this.state.settings.cookTime, 'cookTime')}>
+                                                    <FiSave />  Save
+                                            </button> 
+                                        </div>
+                                    </div>
+                                    <div className="col-lg-5 py-1">
+                                        <label htmlFor="newTopping" className="form-label ">Enter new topping to add to options:  </label> 
+                                        <div className="input-group">
+                                            <TextInput inputType={'text'}
+                                                name={'newTopping'}
+                                                title={'Add Topping Option:  '}
+                                                value={this.state.settings.newTopping}
+                                                placeHolder={'Enter new topping to add to options'}
+                                                handleChange={this.handleInput}
+                                                id={'newTopping'}
+                                            />
+                                            <button className={"form-control btn btn-sm btn-outline-primary"} 
+                                                title="Save Updates" 
+                                                onClick={e => this.handleNewTopping(e, this.state.settings.newTopping)}>
+                                                    <FiPlusSquare />  Add
+                                            </button> 
+                                        </div>
+                                    </div> 
+                                </div>
+                            </form>
                         </div>
-                        <div className="form-control">
-                        <span className="text-danger" id="timeError"></span>                
-                        <TimeInput inputType={'time'}
-                            name={'pickUp'}
-                            title={'Select pick up time (please allow 30 minutes for your pizza to be made):  '}
-                            value={this.state.newOrder.pickUp}
-                            placeHolder={'Select Pick Up Time'}
-                            handleChange={this.handleInput}
-                            minTime={new Date().setHours(11, 30, 0, 0)}
-                            maxTime={new Date().setHours(20, 30, 0, 0)}
-                            required={'required'}
-                        />
+                        <div className="form-control mt-4">
+                            {isDays.length > 0 ? (
+                            <Checkbox title={'Days available this week: '}
+                                name={'daysAvailable'}
+                                options={this.state.daysOfWeek}
+                                selectedOptions = {this.state.selectedDays}
+                                handleChange={this.handleDays}
+                                />) : "No days yet"
+                            }    
+                            <button className={"btn btn-sm btn-outline-primary"} 
+                                title="Save Updates" 
+                                onClick={e => this.handleDaysAvailable(e)}>
+                                    <FiSave />  Save
+                            </button>                         
                         </div>
-                        <div className="form-control">
-                        <TextInput inputType={'text'}
-                            name={'oName'}
-                            title={'Name on order:  '}
-                            value={this.state.newOrder.oName}
-                            placeHolder={'First and Last Name'}
-                            handleChange={this.handleInput}
-                            required={'required'}
-                        />
+                        <div className='py-1 d-flex align-items-center justify-content-center'>
+                            <form className="form-group col-12 ">
+                                <div className="row justify-content-between">
+                                <div className="col-lg-5">
+                                <label htmlFor="startTime" className="form-label">Select service start time:  </label>                                                               
+                                <div className="input-group">
+                                    {/* <div className="input-group-prepend col-5 "> */}
+                                        <span className="text-danger" id="timeError"></span>                
+                                        <TimeInput inputType={'time'}
+                                            id={'startTime'}
+                                            name={'startTime'}
+                                            title={'Select service start time:  '}
+                                            value={this.state.settings.startTime}
+                                            placeHolder={this.state.settings.startTime}
+                                            handleChange={this.handleInput}
+                                        />
+                                    {/* </div> */}
+                                    <button className={"form-control btn btn-sm btn-outline-primary"} 
+                                        title="Save Updates" 
+                                        onClick={e => this.handleSave(e, this.state.settings.startTime, 'startTime')}>
+                                            <FiSave /> Save
+                                    </button>
+                                </div>
+                                </div>
+                                <div className="col-lg-5">
+                                <label htmlFor="endTime" className="form-label">Select service end time:  </label> 
+                                    <div className="input-group">
+                                    
+                                    {/* <div className="input-group-prepend col-5"> */}
+                                        <span className="text-danger" id="timeError"></span>                
+                                        <TimeInput inputType={'time'}
+                                            id={'endTime'}
+                                            name={'endTime'}
+                                            title={'Select service end time:  '}
+                                            value={this.state.settings.endTime}
+                                            placeHolder={this.state.settings.endTime}
+                                            handleChange={this.handleInput}
+                                        />
+                                    {/* </div> */}
+                                    <button className={"form-control btn btn-sm btn-outline-primary"} 
+                                        title="Save Updates" 
+                                        onClick={e => this.handleSave(e, this.state.settings.endTime, 'endTime')}>
+                                            <FiSave />  Save
+                                    </button>                                
+                                </div>
+                                </div>
+                                </div>
+                            </form> 
                         </div>
-                        <div className="form-control">
-                        <TextInput inputType={'email'}
-                            name={'email'}
-                            title={'Email Address:  '}
-                            value={this.state.newOrder.email}
-                            placeHolder={'email@mail.com'}
-                            handleChange={this.handleInput}
-                            required={'required'}
-                        />
-                        </div>
-                        <div className="form-control">
-                        <TextInput inputType={'number'}
-                            name={'phone'}
-                            title={'Phone Number:'}
-                            value={this.state.newOrder.phone}
-                            placeHolder={'555-555-5555'}
-                            handleChange={this.handleInput}
-                            required={'required'}
-                        />
-                        </div>
-                        <div className="form-control">
-                            <Button 
-                                action = {this.handleFormSubmit}
-                                type = {'primary'}
-                                title = {'Submit'}
-                                className = {'btn btn-outline-primary me-2'}
-                            />
-                            <Button 
-                                action = {this.handleClearForm}
-                                type = {'secondary'}
-                                title = {'Clear'}
-                                className = {'btn btn-outline-danger'}
-                            />
-                        </div>
-                    </div>
-                    
+                        
+                    </div>                    
                 </div>
-            </form>
+            </div>
         )
     }
 

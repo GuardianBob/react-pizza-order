@@ -6,12 +6,12 @@ import DropDown from './DropDown';
 import TextArea from './TextArea';
 import TimeInput from './TimeInput';
 import firebase from '../Firebase';
-import { getDatabase, ref, set } from 'firebase/database';
+import { getDatabase, ref, set, onValue } from 'firebase/database';
 
 class FormContainer extends Component {
     constructor(props){
         super(props);
-
+        
         this.state = {
             newOrder: {
                 toppings: [],
@@ -23,13 +23,44 @@ class FormContainer extends Component {
                 ready: false,
             },
 
-            toppingsOptions: ["Pepperoni", "Italian Sausage", "Roasted Red Peppers", "Onion", "Green Bell Pepper", "Bacon", "Garlic", "Spinach", "Black Olives"]
+            toppingsOptions: [],
+            available: false,
+            settings: {}
+            
+            // toppingsOptions: ["Pepperoni", "Italian Sausage", "Roasted Red Peppers", "Onion", "Green Bell Pepper", "Bacon", "Garlic", "Spinach", "Black Olives"]
             
         }
+        
         this.handleInput = this.handleInput.bind(this);
         this.handleToppings = this.handleToppings.bind(this);
         this.handleClearForm = this.handleClearForm.bind(this);
         this.handleFormSubmit = this.handleFormSubmit.bind(this);
+    }
+
+    componentDidMount() {
+        // you can also check props with current version
+        // and set conditions to update state or not
+        let settings = {};
+        const db = getDatabase();
+        const settingsRef = ref(db, 'settings/');
+        onValue(settingsRef, (snapshot) => {
+            // this.state.toppingsOptions = snapshot.val();
+            settings = snapshot.val();
+            this.state.settings = settings;
+            this.state.toppingsOptions = settings['toppingsAvailable'];
+            // console.log(this.state.toppingsOptions);
+            var d = new Date();
+            var dN = d.getDay();
+            // console.log(dN + ": " + settings['daysAvailable']);
+            if (settings['daysAvailable'].includes(dN)) {
+                this.state.available = true;
+            } else {
+                this.state.available = false;
+            }
+            // console.log(this.state.available);
+            
+            this.forceUpdate()
+        })
     }
 
     handleInput(e) {
@@ -73,27 +104,48 @@ class FormContainer extends Component {
 
     validateForm(e) {
         let pTime = this.state.newOrder.pickUp;
+        let top = this.state.newOrder.toppings;
+
+        if(top.length < 1) {
+            this.setState( prevState => ({ newOrder:
+                {...prevState.newOrder, toppings: ['Cheese Only'] }
+            })
+            );
+        }
+
         var hh = parseInt(pTime.slice(0, 2));
         var mm = parseInt(pTime.slice(3, 5));
+        var startHH = parseInt(this.state.settings['startTime'].slice(0,2));
+        var startMM = parseInt(this.state.settings['startTime'].slice(3,5));
+        var endHH = parseInt(this.state.settings['endTime'].slice(0,2));
+        var endMM = parseInt(this.state.settings['endTime'].slice(3,5));
         var timeNow = new Date();
-        var oTime = new Date(timeNow.getTime() + (30*60000)).toLocaleTimeString('en-GB');
+        var prepTime = parseFloat(this.state.settings['cookTime']);
+        console.log(prepTime);
+        
+        var oTime = new Date(timeNow.getTime() + ((60 * prepTime)*60000)).toLocaleTimeString('en-GB');
+        console.log(oTime)
         var hhNow = parseInt(oTime.slice(0, 2));
         var mmNow = parseInt(oTime.slice(3, 5));
         // console.log(oTime);
-        if (hh < 11 || (hh === 11 && mm < 30)) {
+        if (hh < startHH || (hh === startHH && mm < endMM)) {
             // console.log("Time is too soon!");
             document.getElementById("timeError").innerHTML = "Too Early!"
-        } else if (hh > 20 || (hh === 20 && mm > 30)) {
+        } else if (hh > endHH || (hh === endHH && mm > endMM)) {
             // console.log("Too Late!");
             document.getElementById("timeError").innerHTML = "Too Late!"
         } else if (hh < hhNow || (hh === hhNow && mm < mmNow)) {
-            document.getElementById("timeError").innerHTML = "Please allow at least 30 minutes for your pizza to be prepared."
+            document.getElementById("timeError").innerHTML = `Please allow at least ${(60 * prepTime)} minutes for your pizza to be prepared.`
         }else {
             // console.log("Looks good!")
             document.getElementById("timeError").innerHTML = ""
             this.addOrder(this.state.newOrder);
             this.handleClearForm(e);
         }
+
+        
+
+
     }
 
     handleFormSubmit(e) {
@@ -117,7 +169,9 @@ class FormContainer extends Component {
     }
 
     render() {
+        const avail = this.state.available;
         return (
+            <div> {avail ? 
             <form className="container" onSubmit={this.handleFormSubmit}>
                 <div className="row justify-content-center">
                     <div className="col-md-8 justify-content-center">
@@ -126,7 +180,7 @@ class FormContainer extends Component {
                             <div>$25 per pizza with unlimited toppings.</div>
                         </div>
                         <div className="form-control">
-                            <Checkbox title={'Toppings: '}
+                            <Checkbox title={'Toppings Available: '}
                                 name={'toppings'}
                                 options={this.state.toppingsOptions}
                                 selectedOptions = {this.state.newOrder.toppings}
@@ -193,7 +247,16 @@ class FormContainer extends Component {
                     </div>
                     
                 </div>
-            </form>
+            </form> :
+            <div className="row justify-content-center">
+                <div className="col-md-8 justify-content-center">
+                    <div className="form-control form-label fs-4 text-center">
+                        Sorry, we're closed today.
+                    </div>
+                </div>
+            </div>
+            }
+            </div>
         )
     }
 
