@@ -168,15 +168,18 @@ class FormContainer extends Component {
                 oName: '',
                 email: '',
                 phone: '',
-            }
+            }        
         });
+        document.getElementById('oName').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('phone').value = '';
     }
 
     render() {
         const avail = this.state.available;
         return (
             <div> {avail ? 
-            <form className="container" onSubmit={this.handleFormSubmit}>
+            <form className="container" id="orderForm" onSubmit={this.handleFormSubmit}>
                 <div className="row justify-content-center">
                     <div className="col-md-8 justify-content-center">
                         <div className="form-control form-label fs-4 text-center">
@@ -207,6 +210,7 @@ class FormContainer extends Component {
                         <div className="form-control">
                         <TextInput inputType={'text'}
                             name={'oName'}
+                            id={'oName'}
                             title={'Name on order:  '}
                             value={this.state.newOrder.oName}
                             placeHolder={'First and Last Name'}
@@ -217,6 +221,7 @@ class FormContainer extends Component {
                         <div className="form-control">
                         <TextInput inputType={'email'}
                             name={'email'}
+                            id={'email'}
                             title={'Email Address:  '}
                             value={this.state.newOrder.email}
                             placeHolder={'email@mail.com'}
@@ -227,6 +232,7 @@ class FormContainer extends Component {
                         <div className="form-control">
                         <TextInput inputType={'number'}
                             name={'phone'}
+                            id={'phone'}
                             title={'Phone Number:'}
                             value={this.state.newOrder.phone}
                             placeHolder={'555-555-5555'}

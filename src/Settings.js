@@ -27,7 +27,6 @@ class Settings extends Component {
             selected: [],
             selectedDays: [], 
             daysOfWeek: ['Sunday', 'Monday','Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-            // { 0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday' }
             
         }      
 
@@ -35,10 +34,8 @@ class Settings extends Component {
         this.handleToppings = this.handleToppings.bind(this);
         this.handleDays = this.handleDays.bind(this);
         this.handleClearForm = this.handleClearForm.bind(this);
-        this.handleFormSubmit = this.handleFormSubmit.bind(this);
         this.handleSave = this.handleSave.bind(this);
         this.handleNewTopping = this.handleNewTopping.bind(this);
-        this.handleToppings = this.handleToppings.bind(this);
         this.updateSettings = this.updateSettings.bind(this);
         this.handleAvailableToppings = this.handleAvailableToppings.bind(this);
         
@@ -112,11 +109,6 @@ class Settings extends Component {
 
     handleSave(e, value, name) {
         e.preventDefault();
-        // console.log(this.state.settings);
-        // let value = this.state.settings.startTime;
-        // console.log(value);        
-        // let name = this.state.settings;
-        // console.log(name);
         const db = getDatabase();
         set(ref(db, `settings/${name}`), value);
         // this.updateSettings(this.state.settings);
@@ -152,8 +144,6 @@ class Settings extends Component {
     handleDays(e) {
         const newSelection = e.target.value;
         let newSelectionArray;
-
-        // console.log(newSelection + ": " + this.state.daysOfWeek.indexOf(newSelection));
 
         // Change "toppings" to whatever checkbox area is called.
         if(this.state.selectedDays.indexOf(newSelection) > -1) {
@@ -227,13 +217,6 @@ class Settings extends Component {
         }
     }
 
-    handleFormSubmit(e) {
-        e.preventDefault();
-        this.validateForm(e);
-        // this.addOrder(this.state.newOrder);
-        // this.handleClearForm(e);    
-    }
-
     handleClearForm(e) {
         e.preventDefault();
         this.setState({
@@ -262,8 +245,8 @@ class Settings extends Component {
         const isStartTime = this.state.settings.startTime;
         const isEndTime = this.state.settings.endTime;
         const isCookTime = this.state.settings.cookTime;
-        var startTime = this.handleCheckTime(isStartTime);
-        var endTime = this.handleCheckTime(isEndTime);
+        // var startTime = this.handleCheckTime(isStartTime);
+        // var endTime = this.handleCheckTime(isEndTime);
         // console.log(this.state.settings);
         
         return (
