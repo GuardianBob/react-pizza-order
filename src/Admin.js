@@ -109,8 +109,7 @@ class Admin extends Component {
                                 role="tab" 
                                 aria-controls="settings" 
                                 aria-selected="false">
-                                    <IoIosSettings style={gStyle} />
-                                    Settings
+                                    <IoIosSettings style={gStyle} />Settings
                             </button>
                         </li>
                         <li className="nav-item">

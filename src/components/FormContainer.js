@@ -3,7 +3,7 @@ import Checkbox from './Checkbox';
 import Button from './Button';
 import TextInput from './TextInput';
 import DropDown from './DropDown';
-import TextArea from './TextArea';
+import TimeSlot from './TimeSlot';
 import TimeInput from './TimeInput';
 import firebase from '../Firebase';
 import { getDatabase, ref, set, onValue } from 'firebase/database';
@@ -22,7 +22,7 @@ class FormContainer extends Component {
                 complete: false,
                 ready: false,
             },
-
+            cartOrders: props.cartOrders,
             toppingsOptions: [],
             available: false,
             settings: {}
@@ -30,6 +30,7 @@ class FormContainer extends Component {
             // toppingsOptions: ["Pepperoni", "Italian Sausage", "Roasted Red Peppers", "Onion", "Green Bell Pepper", "Bacon", "Garlic", "Spinach", "Black Olives"]
             
         }
+        console.log(props.cartOrders);
         
         this.handleInput = this.handleInput.bind(this);
         this.handleToppings = this.handleToppings.bind(this);
@@ -143,13 +144,22 @@ class FormContainer extends Component {
         }else {
             // console.log("Looks good!")
             document.getElementById("timeError").innerHTML = ""
-            this.addOrder(this.state.newOrder);
-            this.handleClearForm(e);
-        }
+            // this.addOrder(this.state.newOrder);
+            // this.handleClearForm(e);
+        }    
+    }
 
-        
-
-
+    addToCart = newOrder => {
+        var timestamp = new Date().getTime();
+        let orderID = `${this.state.newOrder.phone}-${timestamp}`;
+        var today = new Date().toLocaleDateString().replace(/\//g, '-');
+        // console.log(today.toLocaleDateString("en-US"));
+        // console.log(orderID);
+        let orders = this.state.cartOrders
+        orders.push(newOrder)
+        this.setState( {cartOrders: orders});
+        console.log(this.state.cartOrders);
+        this.props.cartOrders(newOrder);
     }
 
     handleFormSubmit(e) {
@@ -230,15 +240,25 @@ class FormContainer extends Component {
                         />
                         </div>
                         <div className="form-control">
-                        <TextInput inputType={'number'}
-                            name={'phone'}
-                            id={'phone'}
-                            title={'Phone Number:'}
-                            value={this.state.newOrder.phone}
-                            placeHolder={'555-555-5555'}
-                            handleChange={this.handleInput}
-                            required={'required'}
-                        />
+                            <TextInput inputType={'number'}
+                                name={'phone'}
+                                id={'phone'}
+                                title={'Phone Number:'}
+                                value={this.state.newOrder.phone}
+                                placeHolder={'555-555-5555'}
+                                handleChange={this.handleInput}
+                                required={'required'}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <TimeSlot inputType={'time'}
+                                name={'pickup'}
+                                id={'pickup'}
+                                title={'Time to pickup'}
+                                className={''}
+                                placeHolder={''}
+                                required={''}
+                            />
                         </div>
                         <div className="form-control">
                             <Button 

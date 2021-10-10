@@ -8,6 +8,9 @@ import Login from './Login';
 import Orders from './Orders';
 import OrdersToday from './OrdersToday';
 import { Router, navigate } from '@reach/router';
+import SideDrawer from './components/SideDrawer'
+import Context from "./Context";
+
 
 class App extends Component {
 
@@ -15,10 +18,28 @@ class App extends Component {
     super(); // Super is required to initialize a constructor
     this.state = {
       user: null,
+      cart: {}, 
+      toppings: []
     };
+
+    this.routerRef = React.createRef();
   }  
 
+  async componentDidMount() {
+    // This loads the user when the application is started
+    // let user = localStorage.getItem("user");
+    // This fetches the cart
+    let cart = localStorage.getItem("cart");
+    // This fetches products when app is loaded
+    // const products = await axios.get('http://localhost:3001/products');
+    // user = user ? JSON.parse(user) : null;
+    cart = cart? JSON.parse(cart) : {};
+    // this.setState({ user });    
+    this.setState({ cart });
+  }
+
   render (){
+    
     return (
       <div>
         <Router>
