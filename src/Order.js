@@ -12,7 +12,8 @@ import MContext from './Home.js'
 class FormContainer extends Component {
     constructor(props){
         super(props);
-
+        // const { settings } = props.context;
+        // console.log(props);
         // localStorage.clear();
         
         this.state = {
@@ -44,29 +45,30 @@ class FormContainer extends Component {
     componentDidMount() {
         // you can also check props with current version
         // and set conditions to update state or not
-        let settings = {};
-        const db = getDatabase();
-        const settingsRef = ref(db, 'settings/');
-        onValue(settingsRef, (snapshot) => {
-            // this.state.toppingsOptions = snapshot.val();
-            settings = snapshot.val();
-            this.state.settings = settings;
-            this.state.toppingsOptions = settings['toppingsAvailable'];
-            // console.log(this.state.toppingsOptions);
-            var d = new Date();
-            var dN = d.getDay();
-            // console.log(dN + ": " + settings['daysAvailable']);
-            if (settings['daysAvailable'].includes(dN)) {
-                this.state.available = true;
-            } else {
-                this.state.available = false;
-            }
-            // console.log(this.state.available);
+        // let settings = {};
+        // const db = getDatabase();
+        // const settingsRef = ref(db, 'settings/');
+        // onValue(settingsRef, (snapshot) => {
+        //     // this.state.toppingsOptions = snapshot.val();
+        //     settings = snapshot.val();
+        //     this.state.settings = settings;
+        //     this.state.toppingsOptions = settings['toppingsAvailable'];
+        //     // console.log(this.state.toppingsOptions);
+        //     var d = new Date();
+        //     var dN = d.getDay();
+        //     // console.log(dN + ": " + settings['daysAvailable']);
+        //     if (settings['daysAvailable'].includes(dN)) {
+        //         this.state.available = true;
+        //     } else {
+        //         this.state.available = false;
+        //     }
+        //     // console.log(this.state.available);
             
-            this.forceUpdate()
-        })
+        //     this.forceUpdate()
+        // })
     }
 
+    
     handleInput(e) {
         let value = e.target.value;
         let name = e.target.name;

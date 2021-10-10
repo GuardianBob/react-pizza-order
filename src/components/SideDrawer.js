@@ -34,7 +34,7 @@ const SideDrawer = (props) => {
         })
         
     }
-    console.log(props.action);
+    // console.log(props.action);
         
     return (
         <nav className={drawerClasses}>

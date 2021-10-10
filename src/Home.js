@@ -7,34 +7,36 @@ import Order from './Order';
 import SideDrawer from './components/SideDrawer'
 import DrawerToggle from './components/DrawerToggle'
 import BackDrop from './components/BackDrop'
+import Context from "./Context";
 
-export const MContext = React.createContext();  //exporting context object
-class MyProvider extends Component {
-state = {message: ""}
-render() {
-        return (
-            <MContext.Provider value={
-            {   state: this.state,
-                setMessage: (value) => this.setState({
-                            message: value })}}>
-            {this.props.children}   {/* //this indicates that all the child tags with MyProvider as Parent can access the global store. */}
-            </MContext.Provider>)
-    }
-}
+// export const MContext = React.createContext();  //exporting context object
+// class MyProvider extends Component {
+// state = {message: ""}
+// render() {
+//         return (
+//             <MContext.Provider value={
+//             {   state: this.state,
+//                 setMessage: (value) => this.setState({
+//                             message: value })}}>
+//             {this.props.children}   {/* //this indicates that all the child tags with MyProvider as Parent can access the global store. */}
+//             </MContext.Provider>)
+//     }
+// }
 
 
 class Home extends Component {
     constructor() {
         super();
+        console.log(this.state);
         this.state = {
             sideDrawerOpen: false,
             cartOrders: []
         };
-
+        
         this.drawerClickHandler = this.drawerClickHandler.bind(this);
         
     }
-
+    
     componentDidMount() {
         let cartOrders = []
         const prevOrders = JSON.parse(localStorage.getItem('pizza'))
@@ -90,8 +92,19 @@ class Home extends Component {
         // let cartOrders = this.state.cartOrders
 
         return (
+            <Context.Provider
+                    value={{
+                    ...this.state,
+                    removeFromCart: this.removeFromCart,
+                    addToCart: this.addToCart,
+                    // login: this.login,
+                    // addProduct: this.addProduct,
+                    clearCart: this.clearCart,
+                    // checkout: this.checkout
+                    }}
+                >
             <div>
-                <MyProvider>
+                {/* <MyProvider> */}
                     <SideDrawer sideDrawerOpen={this.state.sideDrawerOpen} cartOrders={this.state.cartOrders} action={this.submitOrder}/>
                     { backdrop }    
                     <div className="container" id="home-title">
@@ -119,10 +132,11 @@ class Home extends Component {
                         </div>                
                     </div>
                     <div className="container" id="order-form">
-                        <Order sideDrawerOpen={this.state.sideDrawerOpen} addToCart={this.state.cartOrders}/>
+                        <Order sideDrawerOpen={this.state.sideDrawerOpen} addToCart={this.state.cartOrders} />
                     </div>
-                </MyProvider>
+                {/* </MyProvider> */}
             </div>
+            </Context.Provider>
             );
     }
 }
